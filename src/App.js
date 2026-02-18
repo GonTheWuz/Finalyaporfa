@@ -1,25 +1,51 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect } from "react";
+import googleOneTap from "google-one-tap";
+import Column from "./components/colum";
+import NewTaskForm from "./components/newtaskform";
+import { useAuth } from "./context/AuthContext";
 
-function App() {
+const GOOGLE_CLIENT_ID =
+  "727145878192-gnfdf12226hgp6calbuibeg902rtkc48.apps.googleusercontent.com";
+
+const App = () => {
+  const { user, login, logout } = useAuth();
+
+  useEffect(() => {
+    if (user) return;
+
+    googleOneTap({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: (response) => {
+        login(response.credential);
+      },
+    });
+  }, [user, login]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Gestor de Tareas</h1>
+
+      {user ? (
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <img src={user.picture} alt="perfil" width="40" />
+            <span>{user.name}</span>
+            <button onClick={logout}>Cerrar sesión</button>
+          </div>
+
+          <NewTaskForm author={user.name} />
+
+          <div style={{ display: "flex", gap: "20px" }}>
+            <Column title="Pendientes" status="todo" />
+            <Column title="En Progreso" status="in-progress" />
+            <Column title="Completadas" status="done" />
+          </div>
+        </>
+      ) : (
+        <p>Inicia sesión con Google para acceder al gestor de tareas</p>
+      )}
     </div>
   );
-}
+};
 
 export default App;
